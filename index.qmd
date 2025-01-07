@@ -102,7 +102,20 @@ library(dplyr)
 library(kableExtra)
 library(readxl)
 
-metricas_test_mod16clas <- read_excel("data/metricas_modelo_16clases_V3.xlsx")
+library(httr)
+library(jsonlite)
+
+url <- 'http://10.90.2.47:3123/docs'
+
+query <- list(tipo_modelo = "modelo_16_clases")  # o modelo_16_clases
+
+respuesta <- GET(url,                              # url API
+                 path = '/get_model_metrics',      # ruta
+                 query = query)                    # modelo a utilizar
+
+
+metricas <- fromJSON(fromJSON(content(respuesta, 'text', encoding = "UTF-8"))$data)
+
 load('data/tabla_n_del.RData')
 
 aux = tabla %>%
@@ -155,7 +168,7 @@ aux %>%
 
     - Esto nos permite captar la semántica de los relatos y procesar la característica base secuencial que posee nuestro lenguaje, sin sobreajustarnos a los datos.
 
-- Los embeddings utilizados corresponden a los creados por Jorge Pérez con *FastText*. Estos poseen 1313423 vectores con una dimensión de 300.
+- Los embeddings utilizados corresponden a los creados por Jorge Pérez y José Cañete con *FastText*. Estos poseen 1.313.423 vectores con una dimensión de 300.
 
 - Estos se encuentran disponibles en el repositorio de github [github.com/dccuchile/spanish-word-embeddings](https://github.com/dccuchile/spanish-word-embeddings).
 
@@ -170,17 +183,35 @@ aux %>%
 
 ## Modelamiento | Métricas 
 
-Métricas modelo con **16 clases** en set de testeo: 
+Métricas modelo de 16 clases en set de testeo: 
 
-**Accuracy** = `r round(metricas_test_mod16clas$support[17], digits = 3)`
+**Accuracy** = `r round(metricas$support[17], digits = 3)`
 
 ::: {.medium-par}
 
 ```{r m_mod16, echo =FALSE}
 
-metricas_test_mod16clas %>% 
-  mutate_if(is.numeric, ~round(.x, digits = 3)) %>% 
-  head(16) %>% 
+
+metricas %>% 
+  slice(-17, -18, -19) %>% 
+  # mutate(Delito = case_when(Delito == 'ROBO_DESDE_VEHIC' ~ 'Robo de objetos o partes del vehículo',
+  #                           Delito == 'ROBO_VIVIENDA' ~ 'Robo con fuerza a la vivienda',
+  #                           Delito == 'VANDAL_VIV' ~ 'Vandalismo a la vivienda',
+  #                           Delito == 'ROBO_VIOLENCIA' ~ 'Robo con violencia e intimidación',
+  #                           Delito == 'VANDAL_VEHIC' ~ 'Vandalismo al vehículo',
+  #                           Delito == 'ROBO_SORPRESA' ~ 'Robo con sorpresa',
+  #                           Delito == 'CIBER_ACOSO' ~ 'Ciberbullying',
+  #                           Delito == 'CIBER_HACKEO' ~ 'Hackeo de redes sociales o correo electrónico',
+  #                           Delito == 'ROBO_VEHIC' ~ 'Robo de vehículo',
+  #                           Delito == 'CIBER_DESTRUC' ~ 'Infección de software malicioso',
+  #                           Delito == 'LESIONES' ~ 'Agresiones y Lesiones',
+  #                           Delito == 'NO_CLASIFICABLE' ~ 'No clasificable',
+  #                           Delito == 'FRAUDE' ~ 'Fraude bancario',
+  #                           Delito == 'AMENAZA' ~ 'Amenaza',
+  #                           Delito == 'ESTAFA'~ 'Estafa',
+  #                           Delito == 'HURTO'~ 'Hurto')) %>% 
+  arrange(desc(`f1-score`)) %>% 
+  mutate_if(is.numeric, round, digits = 3) %>% 
   kbl()
 
 ```
@@ -192,14 +223,14 @@ metricas_test_mod16clas %>%
 
 :::{.incremental .medium-par}
 
-- Caso de uso en el lago de datos: Ajuste de modelo preentrenado *BETO* 
+- Caso de uso del lago de datos: Ajuste de modelo preentrenado *BETO* 
 
-  - Comparar métricas usando diferentes tamaños del modelo y comparar con caso base actual
+  - Comparar métricas usando diferentes tamaños del modelo y comparar con caso base actual.
   
   - Virtualizar datos de entrenamiento usando Trino y MinIo.
   
-
-
+  - Fácil aplicación; no se requiere de mucho conocimiento técnico para poder aplicarlo.
+  
 :::
 
 
