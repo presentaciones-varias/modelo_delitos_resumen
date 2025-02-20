@@ -1,0 +1,252 @@
+---
+# title: "Modelo y API predicción de delitos"
+# author: "Enero 2025"
+format:
+  revealjs:
+    auto-stretch: false
+    margin: 0
+    slide-number: true
+    scrollable: true
+    preview-links: auto
+    page-layout: custom
+    logo: imagenes/logo_portada2.png
+    css: ine_quarto_styles.css
+    # footer: <https://quarto.org>
+engine: knitr
+---
+
+#
+
+
+[]{.linea-superior} 
+[]{.linea-inferior} 
+
+
+<!---
+ <img src="imagenes/logo_portada2.png" style="width: 20%"/>  
+--->
+
+[<img src="imagenes/logo_portada2.png" width="20%"/> ]{.center-justified}
+
+
+[**Modelo de clasificación de delitos para el control de calidad**]{.big-par .center-justified}
+[**Proyecto Ciencia de Datos**]{.big-par .center-justified}
+[**Unidad de Gobierno de Datos**]{.medium-par .center-justified}
+
+[**Enero 2025**]{.big-par .center-justified}
+
+
+
+
+
+## Contenidos
+
+:::{.incremental .big-par}
+1. Contexto 🔎
+2. Modelamiento 🛠
+    - Descripción
+    - Métricas
+3. Propuesta 🚀
+
+:::
+
+
+## Contexto (1/2)
+
+
+::: {.incremental .medium-par}
+
+- La Encuesta Nacional Urbana de Seguridad Ciudadana (*ENUSC*) tiene como objetivo obtener información acerca de la victimización, percepción de inseguridad y reacción frente al delito de hogares y personas a nivel nacional y regional, en zonas urbanas del país.
+
+- La ENUSC posee un módulo de *victimización*, el cual consta de dos fases:
+
+  1. ***Screening***; se identifican todos los delitos ocurridos, tanto los intentos como los consumados.
+  
+  2. ***Caracterización***; se obtienen las características del último evento mencionado para el tipo de delito declarado. 
+
+:::
+
+
+## Contexto (1/2)
+
+
+::: {.incremental .medium-par}
+
+- Para algunos delitos específicos, se solicita un relato que describa la situación ocurrida, indicándonos el período de referencia, la persona afectada, el objetivo del delito, el medio utilizado y el estado de consumación del hecho, por ej:
+  
+  > sept 2020 informante kish a cuadras de su hogar en el horario de la tarde 12:00 pm aprox, le robaron la cartera; quitándosela y sale corriendo perdiendo de vista 
+  
+  > durante el mes de julio ingresaron al domicilio saltando el muro. ingresaron y robaron perfumes, cosas de casa.
+    
+    
+- Cada uno de estos relatos pasan por un proceso de revisión para identificar si efectivamente el delito fue consumado y correctamente clasificado.
+
+:::
+
+
+
+## Modelamiento | Descripción (1/3)
+
+. . .
+
+::: {.medium-par}
+
+- Para este modelo de clasificación, se utilizaron 15 tipos de delitos y se agregó la categoría *NO_CLASIFICABLE*, que incluye la existencia de relatos cortos no informativos. 
+
+- La proporción de relatos por clase se distribuye como:
+
+```{r tabla, echo = FALSE, warning=FALSE, message=FALSE}
+
+library(readr)
+library(dplyr)
+library(kableExtra)
+library(readxl)
+
+library(httr)
+library(jsonlite)
+
+url <- 'http://10.90.2.47:3123/docs'
+
+query <- list(tipo_modelo = "modelo_16_clases")  # o modelo_16_clases
+
+respuesta <- GET(url,                              # url API
+                 path = '/get_model_metrics',      # ruta
+                 query = query)                    # modelo a utilizar
+
+
+metricas <- fromJSON(fromJSON(content(respuesta, 'text', encoding = "UTF-8"))$data)
+
+load('data/tabla_n_del.RData')
+
+aux = tabla %>%
+  mutate(Proporción = Cantidad*100/sum(Cantidad)) %>% 
+  mutate(Proporción = paste0(as.character(round(Proporción, digits = 2)), '%')) %>% 
+  select(-Cantidad)
+
+```
+
+:::
+
+. . .
+
+:::: {layout-ncol=2}
+
+:::{.fragment .medium-par .center} 
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+aux %>% 
+  filter(Delito != 'NO_CLASIFICABLE') %>% 
+  slice(c(1:8)) %>% 
+  kbl()
+  
+```
+
+:::
+
+:::{.fragment .medium-par  .center} 
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+aux %>% 
+  slice(c(10:17, 2)) %>% 
+  kbl() %>% 
+  row_spec(8,
+           background = 'lightyellow1')
+  
+```
+
+
+:::
+
+::::
+  
+
+## Modelamiento | Descripción (2/3)
+
+::: {.incremental .medium-par}
+
+- La arquitectura del modelo se compone mediante el uso de embeddings preentrenados, regularización con dropout y una capa LSTM
+
+    - Esto nos permite captar la semántica de los relatos y procesar la característica base secuencial que posee nuestro lenguaje, sin sobreajustarnos a los datos.
+
+- Los embeddings utilizados corresponden a los creados por Jorge Pérez y José Cañete con *FastText*. Estos poseen 1.313.423 vectores con una dimensión de 300.
+
+- Estos se encuentran disponibles en el repositorio de github [github.com/dccuchile/spanish-word-embeddings](https://github.com/dccuchile/spanish-word-embeddings).
+
+
+:::
+
+## Modelamiento | Descripción (3/3)
+
+![](imagenes/embedding.png){width=70%}
+
+
+
+## Modelamiento | Métricas 
+
+Métricas modelo de 16 clases en set de testeo: 
+
+**Accuracy** = `r round(metricas$support[17], digits = 3)`
+
+::: {.medium-par}
+
+```{r m_mod16, echo =FALSE}
+
+
+metricas %>% 
+  slice(-17, -18, -19) %>% 
+  # mutate(Delito = case_when(Delito == 'ROBO_DESDE_VEHIC' ~ 'Robo de objetos o partes del vehículo',
+  #                           Delito == 'ROBO_VIVIENDA' ~ 'Robo con fuerza a la vivienda',
+  #                           Delito == 'VANDAL_VIV' ~ 'Vandalismo a la vivienda',
+  #                           Delito == 'ROBO_VIOLENCIA' ~ 'Robo con violencia e intimidación',
+  #                           Delito == 'VANDAL_VEHIC' ~ 'Vandalismo al vehículo',
+  #                           Delito == 'ROBO_SORPRESA' ~ 'Robo con sorpresa',
+  #                           Delito == 'CIBER_ACOSO' ~ 'Ciberbullying',
+  #                           Delito == 'CIBER_HACKEO' ~ 'Hackeo de redes sociales o correo electrónico',
+  #                           Delito == 'ROBO_VEHIC' ~ 'Robo de vehículo',
+  #                           Delito == 'CIBER_DESTRUC' ~ 'Infección de software malicioso',
+  #                           Delito == 'LESIONES' ~ 'Agresiones y Lesiones',
+  #                           Delito == 'NO_CLASIFICABLE' ~ 'No clasificable',
+  #                           Delito == 'FRAUDE' ~ 'Fraude bancario',
+  #                           Delito == 'AMENAZA' ~ 'Amenaza',
+  #                           Delito == 'ESTAFA'~ 'Estafa',
+  #                           Delito == 'HURTO'~ 'Hurto')) %>% 
+  arrange(desc(`f1-score`)) %>% 
+  mutate_if(is.numeric, round, digits = 3) %>% 
+  kbl()
+
+```
+
+:::
+
+
+## Propuesta 
+
+:::{.incremental .medium-par}
+
+- Caso de uso del lago de datos: Ajuste de modelo preentrenado *BETO* 
+
+  - Comparar métricas usando diferentes tamaños del modelo y comparar con caso base actual.
+  
+  - Virtualizar datos de entrenamiento usando Trino y MinIo.
+  
+  - Fácil aplicación; no se requiere de mucho conocimiento técnico para poder aplicarlo.
+  
+:::
+
+
+
+#
+
+[]{.linea-superior} 
+[]{.linea-inferior} 
+
+<img src="imagenes/logo_portada2.png" width="20%"/>  
+
+
+
+[**Modelo de clasificación de delitos para el control de calidad**]{.big-par .center-justified}
+[**Proyecto Ciencia de Datos**]{.big-par .center-justified}
+[**Unidad de Gobierno de Datos**]{.medium-par .center-justified}
+
+[**Enero 2025**]{.big-par .center-justified}
+

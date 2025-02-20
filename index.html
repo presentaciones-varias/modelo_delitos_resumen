@@ -339,38 +339,47 @@
  <img src="imagenes/logo_portada2.png" style="width: 20%"/>  
 --->
 <p><span class="center-justified"><img src="imagenes/logo_portada2.png" width="20%"></span></p>
-<p><span class="big-par center-justified"><strong>Modelo de clasificación de delitos para el control de calidad</strong></span> <span class="big-par center-justified"><strong>Proyecto Ciencia de Datos</strong></span> <span class="medium-par center-justified"><strong>Unidad de Gobierno de Datos</strong></span></p>
+<p><span class="big-par center-justified"><strong>Modelo de clasificación de delitos para el control de calidad</strong></span> <span class="big-par center-justified"><strong>Área de Ciencia de Datos</strong></span> <span class="medium-par center-justified"><strong>Unidad de Gobierno de Datos</strong></span></p>
 <p><span class="big-par center-justified"><strong>Enero 2025</strong></span></p>
 </section>
 <section id="contenidos" class="slide level2 scrollable">
 <h2>Contenidos</h2>
-<div class="big-par">
+<div class="medium-par">
 <ol type="1">
-<li class="fragment">Contexto 🔎</li>
-<li class="fragment">Modelamiento 🛠
+<li><p>Contexto 🔎</p></li>
+<li><p>Modelo de clasificación 🛠</p>
 <ul>
-<li class="fragment">Descripción</li>
-<li class="fragment">Métricas</li>
+<li>Descripción</li>
+<li>Métricas</li>
 </ul></li>
-<li class="fragment">Propuesta 🚀</li>
+<li><p>¿Qué es una API?</p>
+<ul>
+<li>Descripción</li>
+<li>API para modelo de clasificación de delitos</li>
+</ul></li>
+<li><p>Resumen</p></li>
 </ol>
 </div>
 </section>
 <section id="contexto-12" class="slide level2 scrollable">
-<h2>Contexto (1/2)</h2>
+<h2><span class="big-par">Contexto (1/2)</span></h2>
 <div class="medium-par">
 <ul>
-<li class="fragment"><p>La Encuesta Nacional Urbana de Seguridad Ciudadana (<em>ENUSC</em>) tiene como objetivo obtener información acerca de la victimización, percepción de inseguridad y reacción frente al delito de hogares y personas a nivel nacional y regional, en zonas urbanas del país.</p></li>
 <li class="fragment"><p>La ENUSC posee un módulo de <em>victimización</em>, el cual consta de dos fases:</p>
 <ol type="1">
 <li class="fragment"><p><strong><em>Screening</em></strong>; se identifican todos los delitos ocurridos, tanto los intentos como los consumados.</p></li>
-<li class="fragment"><p><strong><em>Caracterización</em></strong>; se obtienen las características del último evento mencionado para el tipo de delito declarado.</p></li>
+<li class="fragment"><p><strong><em>Caracterización</em></strong>; se obtienen las características del último evento mencionado para el tipo de delito declarado.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="imagenes/victimizacion_enusc.png" class="quarto-figure quarto-figure-center" style="width:50.0%"></p>
+</figure>
+</div></li>
 </ol></li>
 </ul>
 </div>
 </section>
-<section id="contexto-12-1" class="slide level2">
-<h2>Contexto (1/2)</h2>
+<section id="contexto-22" class="slide level2">
+<h2><span class="big-par">Contexto (2/2)</span></h2>
 <div class="medium-par">
 <ul>
 <li class="fragment"><p>Para algunos delitos específicos, se solicita un relato que describa la situación ocurrida, indicándonos el período de referencia, la persona afectada, el objetivo del delito, el medio utilizado y el estado de consumación del hecho, por ej:</p>
@@ -380,17 +389,26 @@
 <blockquote>
 <p>durante el mes de julio ingresaron al domicilio saltando el muro. ingresaron y robaron perfumes, cosas de casa.</p>
 </blockquote></li>
-<li class="fragment"><p>Cada uno de estos relatos pasan por un proceso de revisión para identificar si efectivamente el delito fue consumado y correctamente clasificado.</p></li>
+<li class="fragment"><p>Cada uno de estos relatos pasan por un proceso de revisión para identificar si efectivamente el delito fue consumado y correctamente clasificado.</p>
+<ul>
+<li class="fragment"><p>Lo que implica varias horas de trabajo manual.</p></li>
+<li class="fragment"><p>Para ayudar en está revisión, se implementó un modelo de clasificación que asigna un delito, con cierta <em>probabilidad</em>, a cada relato entregado.</p></li>
+</ul></li>
 </ul>
 </div>
 </section>
-<section id="modelamiento-descripción-13" class="slide level2">
-<h2>Modelamiento | Descripción (1/3)</h2>
+<section id="modelo-de-clasificación-descripción-12" class="slide level2">
+<h2><span class="big-par">Modelo de clasificación | Descripción (1/2)</span></h2>
 <div class="fragment">
 <div class="medium-par">
 <ul>
-<li><p>Para este modelo de clasificación, se utilizaron 15 tipos de delitos y se agregó la categoría <em>NO_CLASIFICABLE</em>, que incluye la existencia de relatos cortos no informativos.</p></li>
-<li><p>La proporción de relatos por clase se distribuye como:</p></li>
+<li class="fragment"><p>Para este modelo, se utilizaron 15 tipos de delitos y se agregó la categoría <em>no clasificable</em>, que incluye la existencia de relatos cortos no informativos</p></li>
+<li class="fragment"><p>Se realizó una separación train-test 80%-20%</p>
+<ul>
+<li class="fragment"><p><strong>Modelo de 15 clases</strong>: 40338 observaciones de entrenamiento y 10076 observaciones de testeo.</p></li>
+<li class="fragment"><p><strong>Modelo de 16 clases</strong>: 40537 observaciones de entrenamiento y 10126 observaciones de testeo.</p></li>
+</ul></li>
+<li class="fragment"><p>La cantidad de relatos<span class="math inline">\(^*\)</span> por clase se distribuye como:</p></li>
 </ul>
 </div>
 </div>
@@ -400,48 +418,48 @@
 </div>
 <div class="quarto-layout-panel" data-layout-ncol="2">
 <div class="quarto-layout-row">
-<div class="fragment medium-par center quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="fragment small-par center quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top" data-quarto-postprocess="true">
 <thead>
 <tr class="header">
 <th style="text-align: left;" data-quarto-table-cell-role="th">Delito</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Proporción</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Frecuencia</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">CIBER_DESTRUC</td>
-<td style="text-align: left;">0.08%</td>
+<td style="text-align: left;">AMENAZA</td>
+<td style="text-align: right;">3013</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">ROBO_VEHIC</td>
-<td style="text-align: left;">0.99%</td>
+<td style="text-align: left;">CIBER_ACOSO</td>
+<td style="text-align: right;">1138</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">LESIONES</td>
-<td style="text-align: left;">2.36%</td>
+<td style="text-align: left;">CIBER_DESTRUC</td>
+<td style="text-align: right;">27</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">CIBER_HACKEO</td>
-<td style="text-align: left;">3.36%</td>
+<td style="text-align: right;">1131</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">CIBER_ACOSO</td>
-<td style="text-align: left;">3.38%</td>
+<td style="text-align: left;">ESTAFA</td>
+<td style="text-align: right;">4489</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">ROBO_SORPRESA</td>
-<td style="text-align: left;">6.24%</td>
+<td style="text-align: left;">FRAUDE</td>
+<td style="text-align: right;">4494</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">VANDAL_VEHIC</td>
-<td style="text-align: left;">7.03%</td>
+<td style="text-align: left;">HURTO</td>
+<td style="text-align: right;">4564</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">ROBO_VIOLENCIA</td>
-<td style="text-align: left;">7.18%</td>
+<td style="text-align: left;">LESIONES</td>
+<td style="text-align: right;">1245</td>
 </tr>
 </tbody>
 </table>
@@ -450,48 +468,52 @@
 </div>
 </div>
 </div>
-<div class="fragment medium-par center quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
+<div class="fragment small-par center quarto-layout-cell" style="flex-basis: 50.0%;justify-content: center;">
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top" data-quarto-postprocess="true">
 <thead>
 <tr class="header">
 <th style="text-align: left;" data-quarto-table-cell-role="th">Delito</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Proporción</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Frecuencia</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">VANDAL_VIV</td>
-<td style="text-align: left;">7.21%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">FRAUDE</td>
-<td style="text-align: left;">8.14%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">ROBO_VIVIENDA</td>
-<td style="text-align: left;">8.42%</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">AMENAZA</td>
-<td style="text-align: left;">8.96%</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">ESTAFA</td>
-<td style="text-align: left;">9.82%</td>
+<td style="text-align: left;">NO_CLASIFICABLE</td>
+<td style="text-align: right;">199</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">ROBO_DESDE_VEHIC</td>
-<td style="text-align: left;">12.72%</td>
+<td style="text-align: right;">4279</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">HURTO</td>
-<td style="text-align: left;">13.57%</td>
+<td style="text-align: left;">ROBO_SORPRESA</td>
+<td style="text-align: right;">2099</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; background-color: rgba(255, 255, 224, 255) !important;">NO_CLASIFICABLE</td>
-<td style="text-align: left; background-color: rgba(255, 255, 224, 255) !important;">0.52%</td>
+<td style="text-align: left;">ROBO_VEHIC</td>
+<td style="text-align: right;">332</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ROBO_VIOLENCIA</td>
+<td style="text-align: right;">2416</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ROBO_VIVIENDA</td>
+<td style="text-align: right;">3967</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">VANDAL_VEHIC</td>
+<td style="text-align: right;">3955</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">VANDAL_VIV</td>
+<td style="text-align: right;">3189</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CIBER_ACOSO</td>
+<td style="text-align: right;">1138</td>
 </tr>
 </tbody>
 </table>
@@ -503,26 +525,27 @@
 </div>
 </div>
 </div>
+<div class="fragment">
+<p><span class="small.par"><em><span class="math inline">\(^*\)</span>información proveniente de las versiones 2018, 2019, 2020, 2021 y 2023 de ENUSC usado en set de entrenamiento</em></span></p>
+</div>
 </section>
-<section id="modelamiento-descripción-23" class="slide level2">
-<h2>Modelamiento | Descripción (2/3)</h2>
+<section id="modelo-de-clasificación-descripción-22" class="slide level2">
+<h2><span class="big-par">Modelo de clasificación | Descripción (2/2)</span></h2>
+<!-- TODO: modificar, poner imagenes o algo para que se entienda mejor -->
 <div class="medium-par">
 <ul>
-<li class="fragment"><p>La arquitectura del modelo se compone mediante el uso de embeddings preentrenados, regularización con dropout y una capa LSTM</p>
-<ul>
-<li class="fragment">Esto nos permite captar la semántica de los relatos y procesar la característica base secuencial que posee nuestro lenguaje, sin sobreajustarnos a los datos.</li>
-</ul></li>
-<li class="fragment"><p>Los embeddings utilizados corresponden a los creados por Jorge Pérez y José Cañete con <em>FastText</em>. Estos poseen 1.313.423 vectores con una dimensión de 300.</p></li>
-<li class="fragment"><p>Estos se encuentran disponibles en el repositorio de github <a href="https://github.com/dccuchile/spanish-word-embeddings">github.com/dccuchile/spanish-word-embeddings</a>.</p></li>
+<li class="fragment"><p>Se ajustó un modelo con redes neuronales usando una capa de embeddings preentrenados y una capa LSTM.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="imagenes/embeddings_ex2.png" class="quarto-figure quarto-figure-center" style="width:30.0%"></p>
+</figure>
+</div></li>
+<li class="fragment"><p>Esto nos permite captar el significado (semántica) de los relatos y procesar la estructura secuencial que caracteriza a nuestro lenguaje</p></li>
 </ul>
 </div>
 </section>
-<section id="modelamiento-descripción-33" class="slide level2">
-<h2>Modelamiento | Descripción (3/3)</h2>
-<p><img data-src="imagenes/embedding.png" style="width:70.0%"></p>
-</section>
-<section id="modelamiento-métricas" class="slide level2">
-<h2>Modelamiento | Métricas</h2>
+<section id="modelo-de-clasificación-métricas-12" class="slide level2">
+<h2><span class="big-par">Modelo de clasificación | Métricas (1/2)</span></h2>
 <p>Métricas modelo de 16 clases en set de testeo:</p>
 <p><strong>Accuracy</strong> = 0.914</p>
 <div class="medium-par">
@@ -659,16 +682,233 @@
 </div>
 </div>
 </section>
-<section id="propuesta" class="slide level2">
-<h2>Propuesta</h2>
+<section id="modelo-de-clasificación-métricas-22" class="slide level2">
+<h2><span class="big-par">Modelo de clasificación | Métricas (2/2)</span></h2>
+<p>Métricas modelo de 15 clases en set de testeo:</p>
+<p><strong>Accuracy</strong> = 0.912</p>
+<div class="medium-par">
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">Delito</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">precision</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">recall</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">f1-score</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">support</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">FRAUDE</td>
+<td style="text-align: right;">0.940</td>
+<td style="text-align: right;">0.955</td>
+<td style="text-align: right;">0.947</td>
+<td style="text-align: right;">1124</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ESTAFA</td>
+<td style="text-align: right;">0.941</td>
+<td style="text-align: right;">0.947</td>
+<td style="text-align: right;">0.944</td>
+<td style="text-align: right;">1122</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">VANDAL_VIV</td>
+<td style="text-align: right;">0.930</td>
+<td style="text-align: right;">0.944</td>
+<td style="text-align: right;">0.937</td>
+<td style="text-align: right;">798</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CIBER_ACOSO</td>
+<td style="text-align: right;">0.936</td>
+<td style="text-align: right;">0.933</td>
+<td style="text-align: right;">0.935</td>
+<td style="text-align: right;">284</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ROBO_DESDE_VEHIC</td>
+<td style="text-align: right;">0.921</td>
+<td style="text-align: right;">0.942</td>
+<td style="text-align: right;">0.931</td>
+<td style="text-align: right;">1070</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AMENAZA</td>
+<td style="text-align: right;">0.939</td>
+<td style="text-align: right;">0.920</td>
+<td style="text-align: right;">0.930</td>
+<td style="text-align: right;">753</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">VANDAL_VEHIC</td>
+<td style="text-align: right;">0.944</td>
+<td style="text-align: right;">0.915</td>
+<td style="text-align: right;">0.929</td>
+<td style="text-align: right;">989</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CIBER_HACKEO</td>
+<td style="text-align: right;">0.877</td>
+<td style="text-align: right;">0.933</td>
+<td style="text-align: right;">0.904</td>
+<td style="text-align: right;">283</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ROBO_VIOLENCIA</td>
+<td style="text-align: right;">0.902</td>
+<td style="text-align: right;">0.902</td>
+<td style="text-align: right;">0.902</td>
+<td style="text-align: right;">604</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">LESIONES</td>
+<td style="text-align: right;">0.906</td>
+<td style="text-align: right;">0.897</td>
+<td style="text-align: right;">0.901</td>
+<td style="text-align: right;">311</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ROBO_VIVIENDA</td>
+<td style="text-align: right;">0.899</td>
+<td style="text-align: right;">0.879</td>
+<td style="text-align: right;">0.889</td>
+<td style="text-align: right;">982</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">HURTO</td>
+<td style="text-align: right;">0.852</td>
+<td style="text-align: right;">0.860</td>
+<td style="text-align: right;">0.856</td>
+<td style="text-align: right;">1141</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ROBO_SORPRESA</td>
+<td style="text-align: right;">0.838</td>
+<td style="text-align: right;">0.838</td>
+<td style="text-align: right;">0.838</td>
+<td style="text-align: right;">525</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ROBO_VEHIC</td>
+<td style="text-align: right;">0.841</td>
+<td style="text-align: right;">0.699</td>
+<td style="text-align: right;">0.763</td>
+<td style="text-align: right;">83</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CIBER_DESTRUC</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.143</td>
+<td style="text-align: right;">0.250</td>
+<td style="text-align: right;">7</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</div>
+</section>
+<section id="qué-es-una-api-12" class="slide level2">
+<h2><span class="big-par">¿Qué es una API? (1/2)</span></h2>
+<div>
+<ul>
+<li class="fragment"><p>Las APIs (Interfaces de Programación de Aplicaciones) son herramientas que permiten que diferentes programas o computadores se comuniquen entre sí. Actúan como intermediarios, permitiendo que un programa solicite datos o acciones específicas de otro sin necesidad de entender su funcionamiento interno.</p></li>
+<li class="fragment"><p>En la práctica, las APIs facilitan el acceso a servicios o datos externos desde programas como Python o R, evitando procesos más complejos y costosos.</p></li>
+<li class="fragment"><p>Ejemplos: API de Twitter o <em>X</em> (para recolectar tuits), API de la CMF (para obtener datos como la UF, monedas extranjeras, etc.), entre otros.</p></li>
+</ul>
+</div>
+</section>
+<section id="qué-es-una-api-22" class="slide level2">
+<h2><span class="big-par">¿Qué es una API? (2/2)</span></h2>
+<div>
+
+</div>
+<div class="medium-par quarto-layout-panel" data-layout-ncol="2">
+<div class="quarto-layout-row">
+<div class="fragment medium-par quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<p>La analogía del restaurant es práctica para entender la lógica de las API:</p>
+<ul>
+<li>El usuario/a sería el cliente</li>
+<li>La API sería la mesera o el mesero</li>
+<li>La información que nos puede brindar la API es el menú</li>
+<li>Los servidores con sus bases de datos serían la cocina</li>
+</ul>
+</div>
+<div class="fragment medium-par quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<p>Por lo tanto:</p>
+<ul>
+<li>El usuario le pide a la API una información específica (el plato) en base a lo disponible en el menú.</li>
+<li>Luego, los servidores (cocina) se encargan de obtener esa información desde las bases de datos</li>
+<li>Finalmente la API le entrega el plato (información) al usuario, si es que este es parte del menú.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="fragment">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="imagenes/api_restaurant.jpg" class="quarto-figure quarto-figure-center" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</section>
+<section id="api-para-modelo-de-clasificación-13" class="slide level2">
+<h2><span class="big-par">API para modelo de clasificación (1/3)</span></h2>
 <div class="medium-par">
 <ul>
-<li class="fragment"><p>Caso de uso del lago de datos: Ajuste de modelo preentrenado <em>BETO</em></p>
+<li class="fragment"><p>Esta API permite abstraer la clasificación de delitos de la programación utilizada, facilitando el acceso a cualquier persona usuaria que siga el manual de uso.</p></li>
+<li class="fragment"><p>El objetivo principal de la API es:</p>
 <ul>
-<li class="fragment"><p>Comparar métricas usando diferentes tamaños del modelo y comparar con caso base actual.</p></li>
-<li class="fragment"><p>Virtualizar datos de entrenamiento usando Trino y MinIo.</p></li>
-<li class="fragment"><p>Fácil aplicación; no se requiere de mucho conocimiento técnico para poder aplicarlo.</p></li>
+<li class="fragment">Permitir, de manera sencilla, la predicción de delitos dado un relato, en base a los modelos <em>Deep Learning</em> que fueron desarrollados.</li>
 </ul></li>
+</ul>
+</div>
+</section>
+<section id="api-para-modelo-de-clasificación-23" class="slide level2">
+<h2><span class="big-par">API para modelo de clasificación (2/3)</span></h2>
+<div class="medium-par">
+<p>La API está compuesta por 3 tareas específicas principales ( <em>endpoints</em> ), pero en esta capacitación solo veremos el más importante: <span style="color:blue"> <em>/predecir</em></span>.</p>
+<ul>
+<li class="fragment"><p><span style="color:blue"> <em>/predecir</em></span>: Se ingresa una lista con glosas de delitos a predecir y un parámetro <strong><em>tipo_modelo</em></strong> que puede tomar valores <em>modelo_15_clases</em> o <em>modelo_16_clases</em> y devuelve un <span style="color:blue"> <em>.json</em></span> con dos llaves por cada glosa: <span style="color:blue"> <em>probabilidades</em></span> y <span style="color:blue"> <em>predicciones</em></span>.</p>
+<ul>
+<li class="fragment"><p><span style="color:blue"> <em>probabilidades</em></span> nos indica el nivel de certeza asociado a cada delito predicho, junto con el nombre del delito.</p></li>
+<li class="fragment"><p><span style="color:blue"> <em>predicciones</em></span> contiene el nombre del delito que tuvo la probabilidad más alta calculada por el modelo seleccionado.</p></li>
+</ul></li>
+<li class="fragment"><p>La API retorna la información en formato <span style="color:blue"> <em>.json</em></span> , el cual corresponde a una forma estándar y flexible de dar formato y estructura a los datos, facilitando su transmisión</p></li>
+</ul>
+</div>
+</section>
+<section id="api-para-modelo-de-clasificación-33" class="slide level2">
+<h2><span class="big-par">API para modelo de clasificación (3/3)</span></h2>
+<p>Ejemplo:</p>
+<div>
+
+</div>
+<div class="medium-par quarto-layout-panel" data-layout-ncol="2">
+<div class="quarto-layout-row">
+<div class="fragment medium-par quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<p>Relato:</p>
+<ul>
+<li>sept 2020 informante kish a cuadras de su hogar en el horario de la tarde 12:00 pm aprox, le robaron la cartera; quitándosela y sale corriendo perdiendo de vista</li>
+</ul>
+</div>
+<div class="fragment quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<p><img src="imagenes/output_get_data.png" width="85%"></p>
+</div>
+</div>
+</div>
+</section>
+<section id="en-resumen" class="slide level2">
+<h2>En resumen</h2>
+<div class="big-par">
+<ul>
+<li class="fragment"><p>Contamos con un modelo de clasificación de delitos que nos permite analizar el texto proveniente de los relatos e indicarnos a cual de las categorias disponibles pertenece.</p></li>
+<li class="fragment"><p>Para realizar la predicción tenemos una API, con la cual podemos obtener el delito y el nivel de certeza de forma sencilla en nuestros computadores</p></li>
 </ul>
 </div>
 </section></section>

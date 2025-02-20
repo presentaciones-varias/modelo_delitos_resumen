@@ -30,7 +30,7 @@ engine: knitr
 
 
 [**Modelo de clasificación de delitos para el control de calidad**]{.big-par .center-justified}
-[**Proyecto Ciencia de Datos**]{.big-par .center-justified}
+[**Área de Ciencia de Datos**]{.big-par .center-justified}
 [**Unidad de Gobierno de Datos**]{.medium-par .center-justified}
 
 [**Enero 2025**]{.big-par .center-justified}
@@ -41,33 +41,41 @@ engine: knitr
 
 ## Contenidos
 
-:::{.incremental .big-par}
+:::{ .medium-par}
 1. Contexto 🔎
-2. Modelamiento 🛠
+
+2. Modelo de clasificación 🛠
+
     - Descripción
     - Métricas
-3. Propuesta 🚀
+
+3. ¿Qué es una API?
+
+    - Descripción
+    - API para modelo de clasificación de delitos
+
+4. Resumen
 
 :::
 
 
-## Contexto (1/2)
+## [Contexto (1/2)]{.big-par}
 
 
 ::: {.incremental .medium-par}
-
-- La Encuesta Nacional Urbana de Seguridad Ciudadana (*ENUSC*) tiene como objetivo obtener información acerca de la victimización, percepción de inseguridad y reacción frente al delito de hogares y personas a nivel nacional y regional, en zonas urbanas del país.
 
 - La ENUSC posee un módulo de *victimización*, el cual consta de dos fases:
 
   1. ***Screening***; se identifican todos los delitos ocurridos, tanto los intentos como los consumados.
   
-  2. ***Caracterización***; se obtienen las características del último evento mencionado para el tipo de delito declarado. 
+  2. ***Caracterización***; se obtienen las características del último evento mencionado para el tipo de delito declarado.
+  
+      ![](imagenes/victimizacion_enusc.png){width=50% fig-align='center'}
 
 :::
 
 
-## Contexto (1/2)
+## [Contexto (2/2)]{.big-par}
 
 
 ::: {.incremental .medium-par}
@@ -80,23 +88,19 @@ engine: knitr
     
     
 - Cada uno de estos relatos pasan por un proceso de revisión para identificar si efectivamente el delito fue consumado y correctamente clasificado.
+  
+  - Lo que implica varias horas de trabajo manual.
+  
+  - Para ayudar en está revisión, se implementó un modelo de clasificación que asigna un delito, con cierta *probabilidad*, a cada relato entregado.
 
 :::
 
 
 
-## Modelamiento | Descripción (1/3)
+## [Modelo de clasificación | Descripción (1/2)]{.big-par}
 
-. . .
 
-::: {.medium-par}
-
-- Para este modelo de clasificación, se utilizaron 15 tipos de delitos y se agregó la categoría *NO_CLASIFICABLE*, que incluye la existencia de relatos cortos no informativos. 
-
-- La proporción de relatos por clase se distribuye como:
-
-```{r tabla, echo = FALSE, warning=FALSE, message=FALSE}
-
+```{r obtener_cantidades, echo = FALSE, warning=FALSE, message=FALSE}
 library(readr)
 library(dplyr)
 library(kableExtra)
@@ -104,24 +108,97 @@ library(readxl)
 
 library(httr)
 library(jsonlite)
+url <- 'http://10.90.2.47:3123/docs'
+
+## Ingresar usuario:
+usuario <- list(username = 'juan', 
+                password = 'juan')
+
+## realizar requerimiento para obtener el token de acceso del usuario:
+resp_token <- POST(url = 'http://10.90.2.47:3123/token', 
+                   body = usuario,
+                   authenticate(usuario$username, usuario$password))     
+
+token <- content(resp_token)
+token <- paste(token$token_type, token$access_token)
+
+## Extraer respuesta al request y construir el token
+## Obteniendo datos de entrenamiento y testeo
+respuesta <- GET(url,                         
+                 path = '/get_training_data', 
+                 query = list(tipo_modelo = 'modelo_15_clases'),                # modelo_15_clases / modelo_16_clases
+                 add_headers('Authorization' = token))  
+
+
+## desenvolvemos los datos tipos JSON a R
+data <- fromJSON(content(respuesta, 'text', encoding = "UTF-8"))
+
+## volvemos a transformar los datos anidados JSON de la lista a R
+y_test_15 <- fromJSON(data$y_test) %>% table %>% as.data.frame()
+y_train_15 <- fromJSON(data$y_train) %>% table %>% as.data.frame()
+
+names(y_test_15) <- c('Delito', 'Frecuencia')
+names(y_train_15) <- c('Delito', 'Frecuencia')
+
+
+## mod 16
+respuesta <- GET(url,                         
+                 path = '/get_training_data', 
+                 query = list(tipo_modelo = 'modelo_16_clases'),                # modelo_15_clases / modelo_16_clases
+                 add_headers('Authorization' = token))  
+
+
+## desenvolvemos los datos tipos JSON a R
+data <- fromJSON(content(respuesta, 'text', encoding = "UTF-8"))
+
+
+## volvemos a transformar los datos anidados JSON de la lista a R
+y_test_16 <- fromJSON(data$y_test) %>% table %>% as.data.frame()
+y_train_16 <- fromJSON(data$y_train) %>% table %>% as.data.frame()
+
+names(y_test_16) <- c('Delito', 'Frecuencia')
+names(y_train_16) <- c('Delito', 'Frecuencia')
+
+
+```
+
+
+. . .
+
+::: {.incremental .medium-par}
+
+- Para este modelo, se utilizaron 15 tipos de delitos y se agregó la categoría *no clasificable*, que incluye la existencia de relatos cortos no informativos
+
+- Se realizó una separación train-test 80%-20%
+  
+    - **Modelo de 15 clases**: `r sum(y_train_15$Frecuencia)` observaciones de entrenamiento y `r sum(y_test_15$Frecuencia)` observaciones de testeo.
+
+    - **Modelo de 16 clases**: `r sum(y_train_16$Frecuencia)` observaciones de entrenamiento y `r sum(y_test_16$Frecuencia)` observaciones de testeo.
+
+
+- La cantidad de relatos$^*$ por clase se distribuye como:
+
+```{r tabla, echo = FALSE, warning=FALSE, message=FALSE}
 
 url <- 'http://10.90.2.47:3123/docs'
 
-query <- list(tipo_modelo = "modelo_16_clases")  # o modelo_16_clases
+query <- list(tipo_modelo = "modelo_16_clases")    # o modelo_16_clases
 
 respuesta <- GET(url,                              # url API
                  path = '/get_model_metrics',      # ruta
                  query = query)                    # modelo a utilizar
 
+respuesta2 <- GET(url,                            
+                 path = '/get_model_metrics',     
+                 query = list(tipo_modelo = "modelo_15_clases") )                    
+
 
 metricas <- fromJSON(fromJSON(content(respuesta, 'text', encoding = "UTF-8"))$data)
+metricas_15 <- fromJSON(fromJSON(content(respuesta2, 'text', encoding = "UTF-8"))$data)
+
+
 
 load('data/tabla_n_del.RData')
-
-aux = tabla %>%
-  mutate(Proporción = Cantidad*100/sum(Cantidad)) %>% 
-  mutate(Proporción = paste0(as.character(round(Proporción, digits = 2)), '%')) %>% 
-  select(-Cantidad)
 
 ```
 
@@ -131,57 +208,51 @@ aux = tabla %>%
 
 :::: {layout-ncol=2}
 
-:::{.fragment .medium-par .center} 
+:::{.fragment .small-par .center} 
 
 ```{r echo = FALSE, warning=FALSE, message=FALSE}
-aux %>% 
-  filter(Delito != 'NO_CLASIFICABLE') %>% 
-  slice(c(1:8)) %>% 
+y_train_16 %>%
+  filter(Delito != 'NO_CLASIFICABLE') %>%
+  slice(c(1:8)) %>%
   kbl()
-  
+
 ```
 
 :::
 
-:::{.fragment .medium-par  .center} 
+:::{.fragment .small-par  .center} 
 
 ```{r echo = FALSE, warning=FALSE, message=FALSE}
-aux %>% 
-  slice(c(10:17, 2)) %>% 
-  kbl() %>% 
-  row_spec(8,
-           background = 'lightyellow1')
-  
+y_train_16 %>%
+  slice(c(9:16, 2)) %>%
+  kbl()
+
 ```
 
 
 :::
-
 ::::
-  
 
-## Modelamiento | Descripción (2/3)
+. . .
 
+[*$^*$información proveniente de las versiones 2018, 2019, 2020, 2021 y 2023 de ENUSC usado en set de entrenamiento*]{.small.par}
+
+## [Modelo de clasificación | Descripción (2/2)]{.big-par}
+
+<!-- TODO: modificar, poner imagenes o algo para que se entienda mejor -->
 ::: {.incremental .medium-par}
 
-- La arquitectura del modelo se compone mediante el uso de embeddings preentrenados, regularización con dropout y una capa LSTM
+- Se ajustó un modelo con redes neuronales usando una capa de embeddings preentrenados y una capa LSTM.
+  
+    ![](imagenes/embeddings_ex2.png){width=30% fig-align='center'}
 
-    - Esto nos permite captar la semántica de los relatos y procesar la característica base secuencial que posee nuestro lenguaje, sin sobreajustarnos a los datos.
 
-- Los embeddings utilizados corresponden a los creados por Jorge Pérez y José Cañete con *FastText*. Estos poseen 1.313.423 vectores con una dimensión de 300.
-
-- Estos se encuentran disponibles en el repositorio de github [github.com/dccuchile/spanish-word-embeddings](https://github.com/dccuchile/spanish-word-embeddings).
-
+- Esto nos permite captar el significado (semántica) de los relatos y procesar la estructura secuencial que caracteriza a nuestro lenguaje
 
 :::
 
-## Modelamiento | Descripción (3/3)
 
-![](imagenes/embedding.png){width=70%}
-
-
-
-## Modelamiento | Métricas 
+## [Modelo de clasificación | Métricas (1/2)]{.big-par}
 
 Métricas modelo de 16 clases en set de testeo: 
 
@@ -218,21 +289,146 @@ metricas %>%
 
 :::
 
+## [Modelo de clasificación | Métricas (2/2)]{.big-par}
 
-## Propuesta 
+Métricas modelo de 15 clases en set de testeo: 
+
+**Accuracy** = `r round(metricas_15$support[16], digits = 3)`
+
+::: {.medium-par}
+
+```{r m_mod15, echo =FALSE}
+
+
+metricas_15 %>% 
+  slice(-17, -18, -16) %>% 
+  # mutate(Delito = case_when(Delito == 'ROBO_DESDE_VEHIC' ~ 'Robo de objetos o partes del vehículo',
+  #                           Delito == 'ROBO_VIVIENDA' ~ 'Robo con fuerza a la vivienda',
+  #                           Delito == 'VANDAL_VIV' ~ 'Vandalismo a la vivienda',
+  #                           Delito == 'ROBO_VIOLENCIA' ~ 'Robo con violencia e intimidación',
+  #                           Delito == 'VANDAL_VEHIC' ~ 'Vandalismo al vehículo',
+  #                           Delito == 'ROBO_SORPRESA' ~ 'Robo con sorpresa',
+  #                           Delito == 'CIBER_ACOSO' ~ 'Ciberbullying',
+  #                           Delito == 'CIBER_HACKEO' ~ 'Hackeo de redes sociales o correo electrónico',
+  #                           Delito == 'ROBO_VEHIC' ~ 'Robo de vehículo',
+  #                           Delito == 'CIBER_DESTRUC' ~ 'Infección de software malicioso',
+  #                           Delito == 'LESIONES' ~ 'Agresiones y Lesiones',
+  #                           Delito == 'FRAUDE' ~ 'Fraude bancario',
+  #                           Delito == 'AMENAZA' ~ 'Amenaza',
+  #                           Delito == 'ESTAFA'~ 'Estafa',
+  #                           Delito == 'HURTO'~ 'Hurto')) %>% 
+  arrange(desc(`f1-score`)) %>% 
+  mutate_if(is.numeric, round, digits = 3) %>% 
+  kbl()
+
+```
+
+:::
+
+
+
+
+## [¿Qué es una API? (1/2)]{.big-par}
+
+
+::: {.incremental}
+
+- Las APIs (Interfaces de Programación de Aplicaciones) son herramientas que permiten que diferentes programas o computadores se comuniquen entre sí. Actúan como intermediarios, permitiendo que un programa solicite datos o acciones específicas de otro sin necesidad de entender su funcionamiento interno.
+
+- En la práctica, las APIs facilitan el acceso a servicios o datos externos desde programas como Python o R, evitando procesos más complejos y costosos.
+
+- Ejemplos: API de Twitter o *X* (para recolectar tuits), API de la CMF (para obtener datos como la UF, monedas extranjeras, etc.), entre otros.
+:::
+
+## [¿Qué es una API? (2/2)]{.big-par}
+
+:::: {layout-ncol=2 .medium-par}
+
+::: {.fragment .medium-par}
+La analogía del restaurant es práctica para entender la lógica de las API:
+
+- El usuario/a sería el cliente
+- La API sería la mesera o el mesero
+- La información que nos puede brindar la API es el menú
+- Los servidores con sus bases de datos serían la cocina
+
+:::
+
+
+::: {.fragment .medium-par}
+Por lo tanto:
+
+- El usuario le pide a la API una información específica (el plato) en base a lo disponible en el menú. 
+- Luego, los servidores (cocina) se encargan de obtener esa información desde las bases de datos
+- Finalmente la API le entrega el plato (información) al usuario, si es que este es parte del menú.
+:::
+
+::::
+
+. . .
+
+![](imagenes/api_restaurant.jpg){width=55% fig-align='center'}
+
+
+## [API para modelo de clasificación (1/3)]{.big-par}
 
 :::{.incremental .medium-par}
 
-- Caso de uso del lago de datos: Ajuste de modelo preentrenado *BETO* 
+- Esta API permite abstraer la clasificación de delitos de la programación utilizada, facilitando el acceso a cualquier persona usuaria que siga el manual de uso.
 
-  - Comparar métricas usando diferentes tamaños del modelo y comparar con caso base actual.
-  
-  - Virtualizar datos de entrenamiento usando Trino y MinIo.
-  
-  - Fácil aplicación; no se requiere de mucho conocimiento técnico para poder aplicarlo.
-  
+- El objetivo principal de la API es:
+
+  - Permitir, de manera sencilla, la predicción de delitos dado un relato, en base a los modelos _Deep Learning_ que fueron desarrollados.
+
 :::
 
+## [API para modelo de clasificación (2/3)]{.big-par}
+
+:::{.incremental .medium-par}
+
+La API está compuesta por 3 tareas específicas principales ( _endpoints_ ), pero en esta capacitación solo veremos el más importante: <span style="color:blue"> */predecir*</span>.
+
+- <span style="color:blue"> */predecir*</span>: Se ingresa una lista con glosas de delitos a predecir y un parámetro ***tipo_modelo*** que puede tomar valores *modelo_15_clases* o *modelo_16_clases* y devuelve un <span style="color:blue"> *.json*</span> con dos llaves por cada glosa: <span style="color:blue"> *probabilidades*</span> y <span style="color:blue"> *predicciones*</span>.
+  
+  - <span style="color:blue"> *probabilidades*</span>  nos indica el nivel de certeza asociado a cada delito predicho, junto con el nombre del delito.
+  
+  - <span style="color:blue"> *predicciones*</span> contiene el nombre del delito que tuvo la probabilidad más alta calculada por el modelo seleccionado. 
+
+- La API retorna la información en formato <span style="color:blue"> *.json*</span> , el cual corresponde a una forma estándar y flexible de dar formato y estructura a los datos, facilitando su transmisión
+
+:::
+
+
+## [API para modelo de clasificación (3/3)]{.big-par}
+
+Ejemplo:
+
+:::: {layout-ncol=2 .medium-par}
+
+:::{.fragment .medium-par}
+
+Relato:
+
+- sept 2020 informante kish a cuadras de su hogar en el horario de la tarde 12:00 pm aprox, le robaron la cartera; quitándosela y sale corriendo perdiendo de vista
+:::
+
+:::fragment
+<img src="imagenes/output_get_data.png" width="85%" />
+:::
+
+::::
+
+
+## En resumen
+
+:::{.incremental .big-par}
+
+
+- Contamos con un modelo de clasificación de delitos que nos permite analizar el texto proveniente de los relatos e indicarnos a cual de las categorias disponibles pertenece.
+
+- Para realizar la predicción tenemos una API, con la cual podemos obtener el delito y el nivel de certeza de forma sencilla en nuestros computadores 
+
+:::
 
 
 #
